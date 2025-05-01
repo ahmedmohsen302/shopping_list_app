@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_list_app/data/groceries_data.dart';
+import 'package:shopping_list_app/views/new_item_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -7,7 +8,20 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Groceries')),
+      appBar: AppBar(
+        title: Text('Groceries'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NewItemView()),
+              );
+            },
+            icon: Icon(Icons.add),
+          ),
+        ],
+      ),
       body: ListView.builder(
         itemCount: groceryItem.length,
         itemBuilder: (context, index) {
