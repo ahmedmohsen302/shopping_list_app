@@ -4,7 +4,7 @@ class GroceryModel {
   final String id;
   final String name;
   final int quantity;
-  final Category category;
+  final CategoryModel category;
 
   GroceryModel({
     required this.id,
