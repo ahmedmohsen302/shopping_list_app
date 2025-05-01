@@ -13,9 +13,9 @@ enum Category {
   other,
 }
 
-class CategoryMode {
+class CategoryModel {
   final String title;
   final Color color;
 
-  CategoryMode({required this.title, required this.color});
+  CategoryModel({required this.title, required this.color});
 }
