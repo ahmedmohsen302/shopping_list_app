@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_list_app/data/categories.dart';
+import 'package:shopping_list_app/models/category_mode.dart';
+import 'package:shopping_list_app/models/grocery_model.dart';
 
 class NewItemView extends StatefulWidget {
   const NewItemView({super.key});
@@ -9,11 +11,16 @@ class NewItemView extends StatefulWidget {
 }
 
 class _NewItemViewState extends State<NewItemView> {
+  final formKey = GlobalKey<FormState>();
+  var enteredName = '';
+  var enteredQuantity = 1;
+  var enteredCategory = categories[Category.meat]!;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Add new item')),
       body: Form(
+        key: formKey,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
@@ -24,7 +31,14 @@ class _NewItemViewState extends State<NewItemView> {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  validator: (value) {},
+                  validator: (value) {
+                    if (value == null ||
+                        value.isEmpty ||
+                        value.trim().length <= 1) {
+                      return 'Try adding a valid value';
+                    }
+                    return null;
+                  },
                   maxLength: 500,
                   decoration: InputDecoration(
                     label: Text('Name'),
@@ -40,6 +54,9 @@ class _NewItemViewState extends State<NewItemView> {
                       ),
                     ),
                   ),
+                  onSaved: (newValue) {
+                    enteredName = newValue!;
+                  },
                 ),
                 SizedBox(height: 12),
                 Row(
@@ -47,13 +64,21 @@ class _NewItemViewState extends State<NewItemView> {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        validator: (value) {},
+                        validator: (value) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              int.tryParse(value) == null ||
+                              int.tryParse(value)! <= 0) {
+                            return 'Try a valid number';
+                          }
+                          return null;
+                        },
                         cursorColor: Theme.of(context).colorScheme.primary,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         keyboardType: TextInputType.number,
-                        initialValue: '1',
+                        initialValue: enteredQuantity.toString(),
                         decoration: InputDecoration(
                           label: Text('Quantity'),
                           labelStyle: TextStyle(
@@ -68,11 +93,15 @@ class _NewItemViewState extends State<NewItemView> {
                             ),
                           ),
                         ),
+                        onSaved: (newValue) {
+                          enteredQuantity = int.parse(newValue!);
+                        },
                       ),
                     ),
                     SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField(
+                        value: enteredCategory,
                         decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -105,7 +134,11 @@ class _NewItemViewState extends State<NewItemView> {
                               ),
                             ),
                         ],
-                        onChanged: (value) {},
+                        onChanged: (value) {
+                          setState(() {
+                            enteredCategory = value!;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -115,12 +148,26 @@ class _NewItemViewState extends State<NewItemView> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        formKey.currentState!.reset();
+                      },
                       child: Text('Reset', style: TextStyle(fontSize: 20)),
                     ),
                     SizedBox(width: 6),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          formKey.currentState!.save();
+                        }
+                        Navigator.of(context).pop(
+                          GroceryModel(
+                            id: DateTime.now().toString(),
+                            name: enteredName,
+                            quantity: enteredQuantity,
+                            category: enteredCategory,
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor:
