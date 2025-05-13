@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shopping_list_app/data/categories.dart';
 import 'package:shopping_list_app/models/category_mode.dart';
 import 'package:shopping_list_app/models/grocery_model.dart';
+import 'package:http/http.dart' as http;
 
 class NewItemView extends StatefulWidget {
   const NewItemView({super.key});
@@ -159,14 +162,27 @@ class _NewItemViewState extends State<NewItemView> {
                         if (formKey.currentState!.validate()) {
                           formKey.currentState!.save();
                         }
-                        Navigator.of(context).pop(
-                          GroceryModel(
-                            id: DateTime.now().toString(),
-                            name: enteredName,
-                            quantity: enteredQuantity,
-                            category: enteredCategory,
-                          ),
+                        final url = Uri.https(
+                          'shopping-list-app-a20f2-default-rtdb.firebaseio.com',
+                          'shopping-list.json',
                         );
+                        http.post(
+                          url,
+                          headers: {'Content-Type': 'application/json'},
+                          body: json.encode({
+                            'name': enteredName,
+                            'quantity': enteredQuantity,
+                            'category': enteredCategory.title,
+                          }),
+                        );
+                        // Navigator.of(context).pop(
+                        //   GroceryModel(
+                        //     id: DateTime.now().toString(),
+                        //     name: enteredName,
+                        //     quantity: enteredQuantity,
+                        //     category: enteredCategory,
+                        //   ),
+                        // );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
