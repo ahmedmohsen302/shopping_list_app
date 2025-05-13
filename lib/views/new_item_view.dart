@@ -18,6 +18,7 @@ class _NewItemViewState extends State<NewItemView> {
   var enteredName = '';
   var enteredQuantity = 1;
   var enteredCategory = categories[Category.meat]!;
+  var isSaving = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,42 +152,69 @@ class _NewItemViewState extends State<NewItemView> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () {
-                        formKey.currentState!.reset();
-                      },
+                      onPressed:
+                          isSaving
+                              ? null
+                              : () {
+                                formKey.currentState!.reset();
+                              },
                       child: Text('Reset', style: TextStyle(fontSize: 20)),
                     ),
                     SizedBox(width: 6),
                     ElevatedButton(
-                      onPressed: () async {
-                        if (formKey.currentState!.validate()) {
-                          formKey.currentState!.save();
-                        }
-                        final url = Uri.https(
-                          'shopping-list-app-a20f2-default-rtdb.firebaseio.com',
-                          'shopping-list.json',
-                        );
-                        final response = await http.post(
-                          url,
-                          headers: {'Content-Type': 'application/json'},
-                          body: json.encode({
-                            'name': enteredName,
-                            'quantity': enteredQuantity,
-                            'category': enteredCategory.title,
-                          }),
-                        );
-                        if (!context.mounted) {
-                          return;
-                        }
+                      onPressed:
+                          isSaving
+                              ? null
+                              : () async {
+                                if (formKey.currentState!.validate()) {
+                                  formKey.currentState!.save();
+                                  setState(() {
+                                    isSaving = true;
+                                  });
+                                }
+                                final url = Uri.https(
+                                  'shopping-list-app-a20f2-default-rtdb.firebaseio.com',
+                                  'shopping-list.json',
+                                );
+                                final response = await http.post(
+                                  url,
+                                  headers: {'Content-Type': 'application/json'},
+                                  body: json.encode({
+                                    'name': enteredName,
+                                    'quantity': enteredQuantity,
+                                    'category': enteredCategory.title,
+                                  }),
+                                );
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                final responseData = json.decode(response.body);
 
-                        Navigator.of(context).pop();
-                      },
+                                Navigator.of(context).pop(
+                                  GroceryModel(
+                                    id: responseData['name'],
+                                    name: enteredName,
+                                    quantity: enteredQuantity,
+                                    category: enteredCategory,
+                                  ),
+                                );
+                              },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor:
                             Theme.of(context).colorScheme.onPrimary,
                       ),
-                      child: Text('Add item', style: TextStyle(fontSize: 18)),
+                      child:
+                          isSaving
+                              ? SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(),
+                              )
+                              : Text(
+                                'Add item',
+                                style: TextStyle(fontSize: 18),
+                              ),
                     ),
                   ],
                 ),

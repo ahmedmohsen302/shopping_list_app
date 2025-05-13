@@ -15,6 +15,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   List<GroceryModel> newGrocery = [];
+  var isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -47,6 +48,7 @@ class _HomeViewState extends State<HomeView> {
     }
     setState(() {
       newGrocery = loadedItem;
+      isLoading = false;
     });
   }
 
@@ -58,18 +60,25 @@ class _HomeViewState extends State<HomeView> {
         actions: [
           IconButton(
             onPressed: () async {
-              await Navigator.push(
+              final newItem = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NewItemView()),
               );
-              loadItems();
+              if (newItem == null) {
+                return;
+              }
+              setState(() {
+                newGrocery.add(newItem);
+              });
             },
             icon: Icon(Icons.add),
           ),
         ],
       ),
       body:
-          newGrocery.isEmpty
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : newGrocery.isEmpty
               ? Center(
                 child: Text(
                   'No groceries yet...',
@@ -98,9 +107,12 @@ class _HomeViewState extends State<HomeView> {
                         ),
                       ),
                       leading: Container(
+                        decoration: BoxDecoration(
+                          color: newGrocery[index].category.color,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                         width: 24,
                         height: 24,
-                        color: newGrocery[index].category.color,
                       ),
                       trailing: Text(
                         newGrocery[index].quantity.toString(),
