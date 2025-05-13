@@ -16,6 +16,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   List<GroceryModel> newGrocery = [];
   var isLoading = true;
+  String? error;
   @override
   void initState() {
     super.initState();
@@ -27,29 +28,41 @@ class _HomeViewState extends State<HomeView> {
       'shopping-list-app-a20f2-default-rtdb.firebaseio.com',
       'shopping-list.json',
     );
-    final response = await http.get(url);
-    final Map<String, dynamic> listData = json.decode(response.body);
-    final List<GroceryModel> loadedItem = [];
-    for (var item in listData.entries) {
-      final category =
-          categories.entries
-              .firstWhere(
-                (element) => element.value.title == item.value['category'],
-              )
-              .value;
-      loadedItem.add(
-        GroceryModel(
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity'],
-          category: category,
-        ),
-      );
+    try {
+      final response = await http.get(url);
+      if (response.body == 'null') {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+      final Map<String, dynamic> listData = json.decode(response.body);
+      final List<GroceryModel> loadedItem = [];
+      for (var item in listData.entries) {
+        final category =
+            categories.entries
+                .firstWhere(
+                  (element) => element.value.title == item.value['category'],
+                )
+                .value;
+        loadedItem.add(
+          GroceryModel(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category,
+          ),
+        );
+      }
+      setState(() {
+        newGrocery = loadedItem;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = 'there was an error try again later';
+      });
     }
-    setState(() {
-      newGrocery = loadedItem;
-      isLoading = false;
-    });
   }
 
   @override
@@ -76,7 +89,9 @@ class _HomeViewState extends State<HomeView> {
         ],
       ),
       body:
-          isLoading
+          error != null
+              ? Center(child: Text(error!))
+              : isLoading
               ? Center(child: CircularProgressIndicator())
               : newGrocery.isEmpty
               ? Center(
@@ -99,7 +114,7 @@ class _HomeViewState extends State<HomeView> {
                         newGrocery.removeAt(index);
                       });
                       final url = Uri.https(
-                        'shpping-list-app-a20f2-default-rtdb.firebaseio.com',
+                        'shopping-list-app-a20f2-default-rtdb.firebaseio.com',
                         'shopping-list/${removedItem.id}.json',
                       );
                       final response = await http.delete(url);
