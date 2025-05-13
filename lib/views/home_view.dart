@@ -93,10 +93,21 @@ class _HomeViewState extends State<HomeView> {
                 itemBuilder: (context, index) {
                   return Dismissible(
                     key: ValueKey(newGrocery[index].id),
-                    onDismissed: (direction) {
+                    onDismissed: (direction) async {
+                      final removedItem = newGrocery[index];
                       setState(() {
-                        newGrocery.remove(newGrocery[index]);
+                        newGrocery.removeAt(index);
                       });
+                      final url = Uri.https(
+                        'shpping-list-app-a20f2-default-rtdb.firebaseio.com',
+                        'shopping-list/${removedItem.id}.json',
+                      );
+                      final response = await http.delete(url);
+                      if (response.statusCode >= 400) {
+                        setState(() {
+                          newGrocery.insert(index, removedItem);
+                        });
+                      }
                     },
                     child: ListTile(
                       title: Text(
