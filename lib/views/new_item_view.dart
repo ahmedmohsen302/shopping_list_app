@@ -158,7 +158,7 @@ class _NewItemViewState extends State<NewItemView> {
                     ),
                     SizedBox(width: 6),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           formKey.currentState!.save();
                         }
@@ -166,7 +166,7 @@ class _NewItemViewState extends State<NewItemView> {
                           'shopping-list-app-a20f2-default-rtdb.firebaseio.com',
                           'shopping-list.json',
                         );
-                        http.post(
+                        final response = await http.post(
                           url,
                           headers: {'Content-Type': 'application/json'},
                           body: json.encode({
@@ -175,14 +175,11 @@ class _NewItemViewState extends State<NewItemView> {
                             'category': enteredCategory.title,
                           }),
                         );
-                        // Navigator.of(context).pop(
-                        //   GroceryModel(
-                        //     id: DateTime.now().toString(),
-                        //     name: enteredName,
-                        //     quantity: enteredQuantity,
-                        //     category: enteredCategory,
-                        //   ),
-                        // );
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
